@@ -1,84 +1,169 @@
-"""Core review engine — assembles context and calls the LLM."""
+"""Core review engine — assembles context and calls the LLM.
+
+Supports multiple backends via the greybeard config:
+  - openai      (default, gpt-4o)
+  - anthropic   (claude-3-5-sonnet)
+  - ollama      (local, llama3.2 or any model)
+  - lmstudio    (local OpenAI-compatible server)
+  - github-copilot (uses GITHUB_TOKEN)
+
+All backends except anthropic are accessed via the OpenAI-compatible API.
+Anthropic uses its own SDK.
+"""
 
 from __future__ import annotations
 
-import os
 import subprocess
 import sys
 from pathlib import Path
 
-from openai import OpenAI
-
+from .config import GreybeardConfig, LLMConfig
 from .models import ReviewRequest
 from .modes import build_system_prompt
 
-DEFAULT_MODEL = "gpt-4o"
-MAX_INPUT_TOKENS_APPROX = 30_000  # rough char limit before truncation warning
+MAX_INPUT_CHARS = 120_000  # ~30k tokens, warn above this
 
 
-def _get_client() -> OpenAI:
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
+# ---------------------------------------------------------------------------
+# Public entry point
+# ---------------------------------------------------------------------------
+
+
+def run_review(
+    request: ReviewRequest,
+    config: GreybeardConfig | None = None,
+    model_override: str | None = None,
+    stream: bool = True,
+) -> str:
+    """Run the review and return the full response text."""
+    if config is None:
+        config = GreybeardConfig.load()
+
+    llm = config.llm
+    model = model_override or llm.resolved_model()
+    system_prompt = build_system_prompt(request.mode, request.pack, request.audience)
+    user_message = _build_user_message(request)
+
+    if llm.backend == "anthropic":
+        return _run_anthropic(llm, model, system_prompt, user_message, stream=stream)
+    else:
+        return _run_openai_compat(llm, model, system_prompt, user_message, stream=stream)
+
+
+# ---------------------------------------------------------------------------
+# Backend implementations
+# ---------------------------------------------------------------------------
+
+
+def _run_openai_compat(
+    llm: LLMConfig,
+    model: str,
+    system_prompt: str,
+    user_message: str,
+    stream: bool = True,
+) -> str:
+    """Run via any OpenAI-compatible API (openai, ollama, lmstudio, github-copilot)."""
+    try:
+        from openai import OpenAI
+    except ImportError:
+        print("Error: openai package not installed. Run: pip install openai", file=sys.stderr)
+        sys.exit(1)
+
+    api_key = llm.resolved_api_key()
+    if not api_key and llm.backend not in ("ollama", "lmstudio"):
+        env_var = llm.resolved_api_key_env()
         print(
-            "Error: OPENAI_API_KEY is not set.\n"
-            "Export it or add it to a .env file in the current directory.",
+            f"Error: {env_var} is not set.\n"
+            f"Export it or add it to a .env file, or run: greybeard init",
             file=sys.stderr,
         )
         sys.exit(1)
-    return OpenAI(api_key=api_key)
+
+    kwargs: dict = {"api_key": api_key or "no-key-needed"}
+    base_url = llm.resolved_base_url()
+    if base_url:
+        kwargs["base_url"] = base_url
+
+    client = OpenAI(**kwargs)
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_message},
+    ]
+
+    if stream:
+        return _stream_openai(client, model, messages)
+    else:
+        resp = client.chat.completions.create(model=model, messages=messages, stream=False)
+        return resp.choices[0].message.content or ""
 
 
-def _collect_repo_context(repo_path: str) -> str:
-    """
-    Collect lightweight context from a repo: README, recent git log,
-    and a directory tree (depth 2). Skips binary and vendor dirs.
-    """
-    path = Path(repo_path).resolve()
-    if not path.exists():
-        return ""
-    parts: list[str] = []
-
-    # README
-    for name in ("README.md", "README.rst", "README.txt", "README"):
-        readme = path / name
-        if readme.is_file():
-            content = readme.read_text(errors="replace")[:3000]
-            parts.append(f"## README\n\n{content}")
-            break
-
-    # Recent git log
+def _run_anthropic(
+    llm: LLMConfig,
+    model: str,
+    system_prompt: str,
+    user_message: str,
+    stream: bool = True,
+) -> str:
+    """Run via Anthropic API."""
     try:
-        log = subprocess.check_output(
-            ["git", "log", "--oneline", "-20"],
-            cwd=path,
-            stderr=subprocess.DEVNULL,
-            text=True,
+        import anthropic
+    except ImportError:
+        print(
+            "Error: anthropic package not installed.\n"
+            "Run: pip install anthropic",
+            file=sys.stderr,
         )
-        parts.append(f"## Recent Git History\n\n```\n{log.strip()}\n```")
-    except subprocess.CalledProcessError:
-        pass
+        sys.exit(1)
 
-    # Directory tree (depth 2, skip common noise)
-    skip_dirs = {".git", "node_modules", "__pycache__", ".venv", "venv", "dist", "build", ".next"}
-    tree_lines = []
-    try:
-        for item in sorted(path.iterdir()):
-            if item.name.startswith(".") or item.name in skip_dirs:
-                continue
-            if item.is_dir():
-                tree_lines.append(f"  {item.name}/")
-                for sub in sorted(item.iterdir()):
-                    if sub.name.startswith(".") or sub.name in skip_dirs:
-                        continue
-                    tree_lines.append(f"    {sub.name}{'/' if sub.is_dir() else ''}")
-            else:
-                tree_lines.append(f"  {item.name}")
-        if tree_lines:
-            parts.append("## Directory Structure\n\n```\n" + "\n".join(tree_lines) + "\n```")
-    except PermissionError:
-        pass
+    api_key = llm.resolved_api_key()
+    if not api_key:
+        print(
+            f"Error: {llm.resolved_api_key_env()} is not set.\n"
+            "Export it or run: greybeard init",
+            file=sys.stderr,
+        )
+        sys.exit(1)
 
-    return "\n\n".join(parts)
+    client = anthropic.Anthropic(api_key=api_key)
+
+    if stream:
+        full_text = ""
+        with client.messages.stream(
+            model=model,
+            max_tokens=4096,
+            system=system_prompt,
+            messages=[{"role": "user", "content": user_message}],
+        ) as s:
+            for text in s.text_stream:
+                print(text, end="", flush=True)
+                full_text += text
+        print()
+        return full_text
+    else:
+        resp = client.messages.create(
+            model=model,
+            max_tokens=4096,
+            system=system_prompt,
+            messages=[{"role": "user", "content": user_message}],
+        )
+        return resp.content[0].text
+
+
+def _stream_openai(client, model: str, messages: list) -> str:
+    """Stream an OpenAI-compatible response."""
+    full_text = ""
+    with client.chat.completions.create(model=model, messages=messages, stream=True) as s:
+        for chunk in s:
+            delta = chunk.choices[0].delta.content or ""
+            print(delta, end="", flush=True)
+            full_text += delta
+    print()
+    return full_text
+
+
+# ---------------------------------------------------------------------------
+# Context assembly
+# ---------------------------------------------------------------------------
 
 
 def _build_user_message(request: ReviewRequest) -> str:
@@ -105,8 +190,7 @@ def _build_user_message(request: ReviewRequest) -> str:
 
     combined = "\n\n".join(parts)
 
-    # Warn if input is very large
-    if len(combined) > MAX_INPUT_TOKENS_APPROX * 4:
+    if len(combined) > MAX_INPUT_CHARS:
         print(
             f"Warning: input is large (~{len(combined)//4} tokens estimated). "
             "Consider trimming or using --repo with a focused diff.",
@@ -116,59 +200,53 @@ def _build_user_message(request: ReviewRequest) -> str:
     return combined
 
 
-def run_review(
-    request: ReviewRequest,
-    model: str = DEFAULT_MODEL,
-    stream: bool = True,
-) -> str:
-    """Run the review and return the full response text."""
-    client = _get_client()
-    system_prompt = build_system_prompt(request.mode, request.pack, request.audience)
-    user_message = _build_user_message(request)
+def _collect_repo_context(repo_path: str) -> str:
+    """Collect lightweight context from a repo: README, recent git log, dir tree."""
+    path = Path(repo_path).resolve()
+    if not path.exists():
+        return ""
 
-    if stream:
-        return _stream_response(client, model, system_prompt, user_message)
-    else:
-        return _single_response(client, model, system_prompt, user_message)
+    parts: list[str] = []
 
+    # README
+    for name in ("README.md", "README.rst", "README.txt", "README"):
+        readme = path / name
+        if readme.is_file():
+            content = readme.read_text(errors="replace")[:3000]
+            parts.append(f"## README\n\n{content}")
+            break
 
-def _stream_response(
-    client: OpenAI,
-    model: str,
-    system_prompt: str,
-    user_message: str,
-) -> str:
-    """Stream the response to stdout and return the full text."""
-    full_text = ""
-    with client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_message},
-        ],
-        stream=True,
-    ) as stream:
-        for chunk in stream:
-            delta = chunk.choices[0].delta.content or ""
-            print(delta, end="", flush=True)
-            full_text += delta
-    print()  # final newline
-    return full_text
+    # Recent git log
+    try:
+        log = subprocess.check_output(
+            ["git", "log", "--oneline", "-20"],
+            cwd=path,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        )
+        parts.append(f"## Recent Git History\n\n```\n{log.strip()}\n```")
+    except subprocess.CalledProcessError:
+        pass
 
+    # Directory tree (depth 2, skip noise)
+    skip_dirs = {".git", "node_modules", "__pycache__", ".venv", "venv", "dist", "build", ".next"}
+    tree_lines = []
+    try:
+        for item in sorted(path.iterdir()):
+            if item.name.startswith(".") or item.name in skip_dirs:
+                continue
+            if item.is_dir():
+                tree_lines.append(f"  {item.name}/")
+                for sub in sorted(item.iterdir()):
+                    if sub.name.startswith(".") or sub.name in skip_dirs:
+                        continue
+                    tree_lines.append(f"    {sub.name}{'/' if sub.is_dir() else ''}")
+            else:
+                tree_lines.append(f"  {item.name}")
+        if tree_lines:
+            tree_str = "\n".join(tree_lines)
+            parts.append(f"## Directory Structure\n\n```\n{tree_str}\n```")
+    except PermissionError:
+        pass
 
-def _single_response(
-    client: OpenAI,
-    model: str,
-    system_prompt: str,
-    user_message: str,
-) -> str:
-    """Non-streaming response (used in tests)."""
-    response = client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_message},
-        ],
-        stream=False,
-    )
-    return response.choices[0].message.content or ""
+    return "\n\n".join(parts)

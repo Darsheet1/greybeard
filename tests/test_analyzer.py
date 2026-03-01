@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+from unittest.mock import patch
+
 from staff_review.analyzer import _build_user_message, _collect_repo_context
+from staff_review.config import GreybeardConfig
 from staff_review.models import ContentPack, ReviewRequest
 
 
@@ -36,15 +39,12 @@ class TestBuildUserMessage:
         assert "No input" in msg or "no input" in msg.lower()
 
     def test_both_context_and_input_included(self):
-        req = _make_request(
-            input_text="some diff",
-            context_notes="some context",
-        )
+        req = _make_request(input_text="some diff", context_notes="some context")
         msg = _build_user_message(req)
         assert "some diff" in msg
         assert "some context" in msg
 
-    def test_large_input_does_not_raise(self, capsys):
+    def test_large_input_warns(self, capsys):
         large_input = "x" * 200_000
         req = _make_request(input_text=large_input)
         msg = _build_user_message(req)
@@ -84,6 +84,53 @@ class TestCollectRepoContext:
         assert "src" in context
 
     def test_handles_nonexistent_path(self):
-        # Should not raise, may return empty string
         context = _collect_repo_context("/nonexistent/path/that/does/not/exist")
         assert isinstance(context, str)
+        assert context == ""
+
+
+class TestRunReviewMocked:
+    """Tests for run_review that mock out the LLM call."""
+
+    def test_run_review_calls_openai_compat(self):
+        from staff_review.analyzer import run_review
+
+        pack = _make_pack()
+        req = _make_request(pack=pack, input_text="some diff", context_notes="some context")
+        cfg = GreybeardConfig()  # defaults to openai
+
+        with patch("staff_review.analyzer._run_openai_compat") as mock_run:
+            mock_run.return_value = "## Summary\n\nMocked review."
+            result = run_review(req, config=cfg, stream=False)
+
+        mock_run.assert_called_once()
+        assert result == "## Summary\n\nMocked review."
+
+    def test_run_review_uses_anthropic_for_anthropic_backend(self):
+        from staff_review.analyzer import run_review
+
+        pack = _make_pack()
+        req = _make_request(pack=pack, input_text="some diff")
+        cfg = GreybeardConfig()
+        cfg.llm.backend = "anthropic"
+
+        with patch("staff_review.analyzer._run_anthropic") as mock_run:
+            mock_run.return_value = "## Summary\n\nAnthropic review."
+            result = run_review(req, config=cfg, stream=False)
+
+        mock_run.assert_called_once()
+        assert result == "## Summary\n\nAnthropic review."
+
+    def test_model_override_passed_through(self):
+        from staff_review.analyzer import run_review
+
+        pack = _make_pack()
+        req = _make_request(pack=pack, input_text="diff")
+        cfg = GreybeardConfig()
+
+        with patch("staff_review.analyzer._run_openai_compat") as mock_run:
+            mock_run.return_value = "result"
+            run_review(req, config=cfg, model_override="gpt-4o-mini", stream=False)
+
+        call_args = mock_run.call_args
+        assert call_args[0][1] == "gpt-4o-mini"  # model is second positional arg

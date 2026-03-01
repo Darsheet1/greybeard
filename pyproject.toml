@@ -26,6 +26,12 @@ dev = [
     "pytest-cov>=5.0",
     "ruff>=0.4",
 ]
+anthropic = [
+    "anthropic>=0.25",
+]
+all = [
+    "anthropic>=0.25",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["staff_review"]
