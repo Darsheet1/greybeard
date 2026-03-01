@@ -46,14 +46,23 @@ The easiest way to create a release:
 
 This script will:
 
-1. ✅ Verify clean git state and version format
+1. ✅ Create a release branch (`release-0.2.0`)
 2. ✅ Update `pyproject.toml` with the new version
 3. ✅ Create/initialize `CHANGELOG.md` (if it doesn't exist)
 4. ✅ Commit the version bump
-5. ✅ Create and push the git tag
-6. ✅ Open your browser to the GitHub release page
+5. ✅ Push the release branch
+6. ✅ Open your browser to create a PR
 
-Then just fill in the release notes on GitHub and publish!
+**After the PR is merged:**
+
+```bash
+git checkout main
+git pull origin main
+git tag -a v0.2.0 -m "Release v0.2.0"
+git push origin v0.2.0
+```
+
+Then create the GitHub Release, and the workflow will automatically publish to PyPI!
 
 ---
 
@@ -61,7 +70,15 @@ Then just fill in the release notes on GitHub and publish!
 
 If you prefer manual control, follow these steps:
 
-### 1. Update Version
+### 1. Create Release Branch
+
+```bash
+git checkout main
+git pull origin main
+git checkout -b release-0.2.0
+```
+
+### 2. Update Version
 
 Edit [`pyproject.toml`](pyproject.toml#L7):
 
@@ -70,7 +87,7 @@ Edit [`pyproject.toml`](pyproject.toml#L7):
 version = "0.2.0"  # Update this
 ```
 
-### 2. Update Changelog (if present)
+### 3. Update Changelog (if present)
 
 If you're maintaining a CHANGELOG.md, add release notes:
 
@@ -90,26 +107,37 @@ If you're maintaining a CHANGELOG.md, add release notes:
 - Improved Z
 ```
 
-### 3. Commit and Push
+### 4. Commit and Push Branch
 
 ```bash
 git add pyproject.toml CHANGELOG.md  # if you have one
 git commit -m "chore: bump version to 0.2.0"
-git push origin main
+git push origin release-0.2.0
 ```
 
-### 4. Create a Git Tag
+### 5. Create and Merge PR
+
+1. Go to your repository and create a PR from `release-0.2.0` to `main`
+2. Wait for CI to pass
+3. Get approval (if required)
+4. Merge the PR
+
+### 6. Create and Push Tag
+
+After the PR is merged:
 
 ```bash
+git checkout main
+git pull origin main
 git tag v0.2.0
 git push origin v0.2.0
 ```
 
-### 5. Create a GitHub Release
+### 7. Create a GitHub Release
 
 1. Go to https://github.com/btotharye/greybeard/releases/new
 2. **Tag**: Select `v0.2.0` (the tag you just pushed)
-3. **Release title**: `v0.2.0` or `greybeard v0.2.0`
+3. \*8Release title\*\*: `v0.2.0` or `greybeard v0.2.0`
 4. **Description**: Summarize changes from CHANGELOG or write release notes
 5. Click **Publish release**
 
@@ -192,24 +220,39 @@ Use manual workflow dispatch and modify the workflow to skip the `publish-to-pyp
 
 ```bash
 ./release.sh 0.2.0
-# Then create GitHub release when browser opens
+# Create and merge PR, then:
+git checkout main
+git pull origin main
+git tag -a v0.2.0 -m "Release v0.2.0"
+git push origin v0.2.0
+# Create GitHub release when browser opens
 ```
 
 **Manual approach:**
 
 ```bash
-# 1. Update version in pyproject.toml
-# 2. Commit changes
+# 1. Create release branch
+git checkout main
+git pull origin main
+git checkout -b release-0.2.0
+
+# 2. Update version in pyproject.toml
+
+# 3. Commit changes
 git add pyproject.toml
 git commit -m "chore: bump version to 0.2.0"
-git push origin main
+git push origin release-0.2.0
 
-# 3. Tag and push
+# 4. Create and merge PR
+
+# 5. After PR merge, tag and push
+git checkout main
+git pull origin main
 git tag v0.2.0
 git push origin v0.2.0
 
-# 4. Create GitHub Release at github.com/yourrepo/releases/new
-# 5. GitHub Actions publishes to PyPI automatically
+# 6. Create GitHub Release at github.com/yourrepo/releases/new
+# 7. GitHub Actions publishes to PyPI automatically
 ```
 
 ---

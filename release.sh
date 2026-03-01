@@ -33,6 +33,7 @@ fi
 
 VERSION="$1"
 TAG="v${VERSION}"
+RELEASE_BRANCH="release-${VERSION}"
 
 # Validate version format (basic semver check)
 if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
@@ -42,12 +43,7 @@ fi
 # Check if on main branch
 CURRENT_BRANCH=$(git branch --show-current)
 if [ "$CURRENT_BRANCH" != "main" ]; then
-    warn "You're on branch '$CURRENT_BRANCH', not 'main'"
-    read -p "Continue anyway? (y/N) " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        exit 1
-    fi
+    error "Please run this script from the 'main' branch"
 fi
 
 # Check for uncommitted changes
@@ -61,8 +57,13 @@ if git rev-parse "$TAG" >/dev/null 2>&1; then
 fi
 
 # Pull latest changes
-info "Pulling latest changes..."
-git pull origin "$CURRENT_BRANCH" || warn "Failed to pull, continuing anyway..."
+info "Pulling latest changes from main..."
+git pull origin main || error "Failed to pull latest changes"
+
+# Create release branch
+info "Creating release branch: ${RELEASE_BRANCH}"
+git checkout -b "$RELEASE_BRANCH"
+success "Created branch ${RELEASE_BRANCH}"
 
 echo
 info "Preparing release ${TAG}"
@@ -120,25 +121,19 @@ if [[ $REPLY =~ ^[Nn]$ ]]; then
     error "Release cancelled"
 fi
 
-info "Committing version bump..."
-git add pyproject.toml CHANGELOG.md 2>/dev/null || git add pyproject.toml
-git commit -m "chore: bump version to ${VERSION}"
-success "Committed version ${VERSION}"
-
-# Create and push tag
-info "Creating tag ${TAG}..."
-git tag -a "$TAG" -m "Release ${TAG}"
-success "Created tag ${TAG}"
-
-# Push changes
+inPush release branch
 echo
-read -p "Push to origin? (Y/n) " -n 1 -r
+read -p "Push release branch to origin? (Y/n) " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Nn]$ ]]; then
     warn "Changes committed locally but not pushed"
-    warn "Run: git push origin $CURRENT_BRANCH && git push origin $TAG"
+    warn "Run: git push origin ${RELEASE_BRANCH}"
     exit 0
 fi
+
+info "Pushing ${RELEASE_BRANCH} to origin..."
+git push origin "$RELEASE_BRANCH"
+success "Pushed ${RELEASE_BRANCH}
 
 info "Pushing to origin..."
 git push origin "$CURRENT_BRANCH"
@@ -151,18 +146,32 @@ REPO_URL=$(git config --get remote.origin.url | sed 's/\.git$//' | sed 's/git@gi
 echo
 success "Release preparation complete!"
 echo
+info "Next steps:"PR
+REPO_URL=$(git config --get remote.origin.url | sed 's/\.git$//' | sed 's/git@github.com:/https:\/\/github.com\//')
+PR_URL="${REPO_URL}/compare/main...${RELEASE_BRANCH}?expand=1"
+
+echo
+success "Release branch ready!"
+echo
 info "Next steps:"
-echo "  1. Create GitHub release at:"
+echo "  1. Create and merge PR:"
+echo "     ${PR_URL}"
+echo
+echo "  2. After PR is merged to main, create and push the tag:"
+echo "     git checkout main"
+echo "     git pull origin main"
+echo "     git tag -a ${TAG} -m \"Release ${TAG}\""
+echo "     git push origin ${TAG}"
+echo
+echo "  3. Create GitHub release at:"
 echo "     ${REPO_URL}/releases/new?tag=${TAG}"
-echo "  2. GitHub Actions will automatically publish to PyPI"
-echo "  3. Monitor at: ${REPO_URL}/actions"
+echo
+echo "  4. GitHub Actions will automatically publish to PyPI"
 echo
 
 # Optionally open browser (macOS)
 if [ "$(uname)" == "Darwin" ]; then
-    read -p "Open GitHub release page in browser? (Y/n) " -n 1 -r
+    read -p "Open GitHub PR page in browser? (Y/n) " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Nn]$ ]]; then
-        open "${REPO_URL}/releases/new?tag=${TAG}"
-    fi
-fi
+        open "$PR_URL
