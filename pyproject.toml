@@ -29,8 +29,16 @@ dev = [
 anthropic = [
     "anthropic>=0.25",
 ]
+docs = [
+    "mkdocs>=1.6",
+    "mkdocs-material>=9.5",
+    "pymdown-extensions>=10.0",
+]
 all = [
     "anthropic>=0.25",
+    "mkdocs>=1.6",
+    "mkdocs-material>=9.5",
+    "pymdown-extensions>=10.0",
 ]
 
 [tool.hatch.build.targets.wheel]
