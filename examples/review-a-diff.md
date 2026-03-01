@@ -2,12 +2,12 @@
 
 ## What this does
 
-Pipe a `git diff` into `staff-review analyze` to get a Staff-level review of the changes.
+Pipe a `git diff` into `greybeard analyze` to get a Staff-level review of the changes.
 
 ## Command
 
 ```bash
-git diff main | staff-review analyze --mode review --pack staff-core
+git diff main | greybeard analyze --mode review --pack staff-core
 ```
 
 ## Sample output
@@ -61,11 +61,11 @@ addressing before shipping to production.
 
 ```bash
 # Review with mentor mode (more explanation of reasoning)
-git diff main | staff-review analyze --mode mentor --pack staff-core
+git diff main | greybeard analyze --mode mentor --pack staff-core
 
 # Review from on-call perspective
-git diff main | staff-review analyze --mode review --pack oncall-future-you
+git diff main | greybeard analyze --mode review --pack oncall-future-you
 
 # Self-check before opening a PR
-git diff main | staff-review self-check --context "Adding email notifications for Pro users"
+git diff main | greybeard self-check --context "Adding email notifications for Pro users"
 ```

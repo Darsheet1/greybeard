@@ -1,6 +1,22 @@
-# Staff Review & Decision Assistant
+# 🧙 greybeard
 
-> A CLI-first thinking tool that acts like a calm, experienced Staff / Principal engineer — helping you review decisions, systems, and tradeoffs before you ship them.
+```
+        .  .
+       .|  |.
+       ||  ||
+      .+====+.
+      | .''. |
+      |/ () \|    "Would I be okay getting paged
+     (_`.__.'_)    about this at 3am six months
+     //|    |\\    from now?"
+    || |    | ||
+    `--'    '--`
+   ~~~~~~~~~~~~~~~~~
+```
+
+> A CLI-first thinking tool that channels the calm, battle-tested wisdom of a Staff / Principal engineer — helping you review decisions, systems, and tradeoffs before you ship them.
+>
+> The greybeard has been paged at 3am. They've watched confident decisions become production incidents. They've seen "we'll clean it up later" last five years. They're not here to block you — they're here to make sure you've thought it through.
 
 ---
 
@@ -58,6 +74,8 @@ Create a YAML file following the pack schema and pass it with `--pack path/to/my
 ## Installation
 
 ```bash
+git clone https://github.com/btotharye/greybeard.git
+cd greybeard
 pip install -e ".[dev]"
 ```
 
@@ -65,7 +83,7 @@ Requires an OpenAI API key:
 
 ```bash
 export OPENAI_API_KEY=sk-...
-# or create a .env file
+# or create a .env file (see .env.example)
 ```
 
 ---
@@ -74,19 +92,22 @@ export OPENAI_API_KEY=sk-...
 
 ```bash
 # Review a git diff through the staff-core lens
-git diff main | staff-review analyze --mode review --pack staff-core
+git diff main | greybeard analyze --mode review --pack staff-core
 
 # Mentor mode with a repo context
-staff-review analyze --repo . --mode mentor --pack oncall-future-you
+greybeard analyze --repo . --mode mentor --pack oncall-future-you
 
 # Self-check a decision you're about to share
-staff-review self-check --context "We're migrating auth to a new provider mid-sprint"
+greybeard self-check --context "We're migrating auth to a new provider mid-sprint"
 
 # Get coaching on how to communicate a concern
-staff-review coach --audience team --pack mentor-mode
+greybeard coach --audience team --pack mentor-mode
 
 # Pipe in a design doc
-cat design-doc.md | staff-review analyze --mode review
+cat design-doc.md | greybeard analyze --mode review
+
+# List available content packs
+greybeard packs
 ```
 
 ---

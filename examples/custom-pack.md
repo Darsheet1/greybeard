@@ -42,10 +42,10 @@ communication_style: |
 ## Usage
 
 ```bash
-git diff main | staff-review analyze --pack my-team.yaml --mode review
+git diff main | greybeard analyze --pack my-team.yaml --mode review
 
 # Or for an architecture decision
-cat architecture-decision.md | staff-review analyze \
+cat architecture-decision.md | greybeard analyze \
   --pack my-team.yaml \
   --mode mentor \
   --context "We're deciding whether to add a new service or extend an existing one"

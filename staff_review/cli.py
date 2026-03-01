@@ -39,7 +39,7 @@ def _read_stdin_if_available() -> str:
 
 
 @click.group()
-@click.version_option(package_name="staff-review")
+@click.version_option(package_name="greybeard")
 def cli() -> None:
     """Staff Review & Decision Assistant.
 
