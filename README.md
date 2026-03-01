@@ -28,6 +28,12 @@
 
 ---
 
+<p align="center">
+  <img src="demo.gif" alt="greybeard demo" width="800">
+</p>
+
+---
+
 ## Philosophy
 
 This is **not** a linter. It won't yell at your variable names or enforce opinionated formatting.
