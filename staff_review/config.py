@@ -50,9 +50,9 @@ class LLMConfig:
     """LLM backend configuration."""
 
     backend: str = "openai"
-    model: str = ""              # empty = use DEFAULT_MODELS[backend]
-    base_url: str = ""           # empty = use DEFAULT_BASE_URLS[backend] if known
-    api_key_env: str = ""        # empty = use DEFAULT_API_KEY_ENVS[backend]
+    model: str = ""  # empty = use DEFAULT_MODELS[backend]
+    base_url: str = ""  # empty = use DEFAULT_BASE_URLS[backend] if known
+    api_key_env: str = ""  # empty = use DEFAULT_API_KEY_ENVS[backend]
 
     def resolved_model(self) -> str:
         return self.model or DEFAULT_MODELS.get(self.backend, "gpt-4o")

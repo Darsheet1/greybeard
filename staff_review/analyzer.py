@@ -18,13 +18,12 @@ import sys
 from pathlib import Path
 
 from rich.console import Console
-from rich.markdown import Markdown
 
 from .config import GreybeardConfig, LLMConfig
-
-console = Console()
 from .models import ReviewRequest
 from .modes import build_system_prompt
+
+console = Console()
 
 MAX_INPUT_CHARS = 120_000  # ~30k tokens, warn above this
 
@@ -114,8 +113,7 @@ def _run_anthropic(
         import anthropic
     except ImportError:
         print(
-            "Error: anthropic package not installed.\n"
-            "Run: uv pip install anthropic",
+            "Error: anthropic package not installed.\nRun: uv pip install anthropic",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -123,8 +121,7 @@ def _run_anthropic(
     api_key = llm.resolved_api_key()
     if not api_key:
         print(
-            f"Error: {llm.resolved_api_key_env()} is not set.\n"
-            "Export it or run: greybeard init",
+            f"Error: {llm.resolved_api_key_env()} is not set.\nExport it or run: greybeard init",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -198,7 +195,7 @@ def _build_user_message(request: ReviewRequest) -> str:
 
     if len(combined) > MAX_INPUT_CHARS:
         print(
-            f"Warning: input is large (~{len(combined)//4} tokens estimated). "
+            f"Warning: input is large (~{len(combined) // 4} tokens estimated). "
             "Consider trimming or using --repo with a focused diff.",
             file=sys.stderr,
         )

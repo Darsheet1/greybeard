@@ -53,18 +53,23 @@ uv pip install greybeard
 git clone https://github.com/btotharye/greybeard.git
 cd greybeard
 
-# Option 1: Use uv run (no venv activation needed)
+# Option 1: Use Makefile (easiest)
+make install-dev               # install with dev dependencies
+make test                      # run tests
+make help                      # see all commands
+
+# Option 2: Use uv run (no venv activation needed)
 uv pip install -e .
 uv run greybeard init          # configure your LLM backend
 uv run greybeard packs         # see what's available
 
-# Option 2: Install and activate venv
+# Option 3: Install and activate venv
 uv pip install -e .
 source .venv/bin/activate      # or wherever uv created the venv
 greybeard init
 greybeard packs
 
-# Option 3: Sync dependencies with uv (creates/updates venv)
+# Option 4: Sync dependencies with uv (creates/updates venv)
 uv sync
 source .venv/bin/activate
 greybeard init
