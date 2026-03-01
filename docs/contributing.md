@@ -19,6 +19,12 @@ cd greybeard
 
 # With uv (recommended)
 uv pip install -e ".[dev]"
+source .venv/bin/activate      # if uv created a venv
+
+# Or use uv run for commands without activating
+uv pip install -e ".[dev]"
+uv run pytest                  # run tests
+uv run ruff check .            # run linter
 
 # Or with pip
 pip install -e ".[dev]"
@@ -28,6 +34,7 @@ pip install -e ".[dev]"
 
 ```bash
 pytest
+# Or with uv: uv run pytest
 
 # With coverage
 pytest --cov=staff_review --cov-report=term-missing
@@ -45,7 +52,7 @@ ruff check . --fix
 ## Running docs locally
 
 ```bash
-pip install -e ".[docs]"
+uv pip install -e ".[docs]"
 mkdocs serve
 ```
 

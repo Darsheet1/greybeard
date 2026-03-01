@@ -17,7 +17,12 @@ import subprocess
 import sys
 from pathlib import Path
 
+from rich.console import Console
+from rich.markdown import Markdown
+
 from .config import GreybeardConfig, LLMConfig
+
+console = Console()
 from .models import ReviewRequest
 from .modes import build_system_prompt
 
@@ -66,7 +71,7 @@ def _run_openai_compat(
     try:
         from openai import OpenAI
     except ImportError:
-        print("Error: openai package not installed. Run: pip install openai", file=sys.stderr)
+        print("Error: openai package not installed. Run: uv pip install openai", file=sys.stderr)
         sys.exit(1)
 
     api_key = llm.resolved_api_key()
@@ -110,7 +115,7 @@ def _run_anthropic(
     except ImportError:
         print(
             "Error: anthropic package not installed.\n"
-            "Run: pip install anthropic",
+            "Run: uv pip install anthropic",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -152,12 +157,13 @@ def _run_anthropic(
 def _stream_openai(client, model: str, messages: list) -> str:
     """Stream an OpenAI-compatible response."""
     full_text = ""
+    console.print()  # Add spacing before output
     with client.chat.completions.create(model=model, messages=messages, stream=True) as s:
         for chunk in s:
             delta = chunk.choices[0].delta.content or ""
             print(delta, end="", flush=True)
             full_text += delta
-    print()
+    console.print("\n")  # Clean newline at end
     return full_text
 
 

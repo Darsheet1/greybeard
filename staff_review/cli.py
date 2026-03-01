@@ -443,7 +443,7 @@ def init() -> None:
         "anthropic": "Anthropic API (claude-3-5-sonnet, etc.) — needs ANTHROPIC_API_KEY",
         "ollama": "Ollama (local, free) — run `ollama serve` first",
         "lmstudio": "LM Studio (local, free) — run LM Studio server first",
-        "github-copilot": "GitHub Copilot API — needs GITHUB_TOKEN",
+        "github-copilot": "[dim](Unavailable - requires OAuth, not yet implemented)[/dim]",
     }
     for i, (name, desc) in enumerate(backend_info.items(), 1):
         marker = "[green]●[/green]" if name == cfg.llm.backend else " "

@@ -25,7 +25,7 @@ DEFAULT_MODELS: dict[str, str] = {
     "anthropic": "claude-3-5-sonnet-20241022",
     "ollama": "llama3.2",
     "lmstudio": "local-model",
-    "github-copilot": "gpt-4o",
+    "github-copilot": "claude-4.5-sonnet",
 }
 
 # Default base URLs for local/alternate backends

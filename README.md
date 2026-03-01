@@ -37,14 +37,51 @@ This is a **thinking partner**. It models how Staff and Principal engineers reas
 - **Reviews** your own thinking before you share it with others
 - **Integrates** into Claude Desktop, Cursor, Zed and any MCP-compatible tool
 
+📚 **[Full Documentation](https://greybeard.readthedocs.io/en/latest/)** — Installation, configuration, guides, and reference
+
 ---
 
 ## Quick Start
 
+### Install with uv (recommended)
+
 ```bash
+# From PyPI
+uv pip install greybeard
+
+# Or for development
 git clone https://github.com/btotharye/greybeard.git
 cd greybeard
-pip install -e .
+
+# Option 1: Use uv run (no venv activation needed)
+uv pip install -e .
+uv run greybeard init          # configure your LLM backend
+uv run greybeard packs         # see what's available
+
+# Option 2: Install and activate venv
+uv pip install -e .
+source .venv/bin/activate      # or wherever uv created the venv
+greybeard init
+greybeard packs
+
+# Option 3: Sync dependencies with uv (creates/updates venv)
+uv sync
+source .venv/bin/activate
+greybeard init
+```
+
+**With optional extras:**
+
+```bash
+uv pip install "greybeard[anthropic]"     # Add Claude/Anthropic support
+uv pip install "greybeard[all]"           # Everything
+```
+
+### Or with pip
+
+```bash
+pip install greybeard
+# or from source: pip install -e .
 
 greybeard init          # configure your LLM backend
 greybeard packs         # see what's available
@@ -56,13 +93,12 @@ greybeard packs         # see what's available
 
 greybeard works with whatever LLM you prefer — cloud or local. Configure once with `greybeard init` or `greybeard config set`.
 
-| Backend | How | What you need |
-|---------|-----|--------------|
-| `openai` | OpenAI API | `OPENAI_API_KEY` |
-| `anthropic` | Anthropic API | `ANTHROPIC_API_KEY` + `pip install greybeard[anthropic]` |
-| `ollama` | Local (free) | [Ollama](https://ollama.ai) running: `ollama serve` |
-| `lmstudio` | Local (free) | [LM Studio](https://lmstudio.ai) server running |
-| `github-copilot` | GitHub Copilot API | `GITHUB_TOKEN` |
+| Backend     | How           | What you need                                                        |
+| ----------- | ------------- | -------------------------------------------------------------------- |
+| `openai`    | OpenAI API    | `OPENAI_API_KEY`                                                     |
+| `anthropic` | Anthropic API | `ANTHROPIC_API_KEY` + `greybeard[anthropic]` extra (see Quick Start) |
+| `ollama`    | Local (free)  | [Ollama](https://ollama.ai) running: `ollama serve`                  |
+| `lmstudio`  | Local (free)  | [LM Studio](https://lmstudio.ai) server running                      |
 
 ```bash
 # Configure interactively
@@ -80,16 +116,18 @@ greybeard config show
 
 Config lives at `~/.greybeard/config.yaml`.
 
+See [LLM Backends Guide](https://greybeard.readthedocs.io/en/latest/guides/backends/) for detailed setup instructions.
+
 ---
 
 ## Modes
 
-| Mode | Description |
-|------|-------------|
-| `review` | Concise Staff-level review of a decision or diff |
-| `mentor` | Explain the reasoning and thought process behind concerns |
-| `coach` | Help phrase constructive feedback for a specific audience |
-| `self-check` | Review your own decision before sharing it |
+| Mode         | Description                                               |
+| ------------ | --------------------------------------------------------- |
+| `review`     | Concise Staff-level review of a decision or diff          |
+| `mentor`     | Explain the reasoning and thought process behind concerns |
+| `coach`      | Help phrase constructive feedback for a specific audience |
+| `self-check` | Review your own decision before sharing it                |
 
 ---
 
@@ -129,13 +167,13 @@ Content packs define the perspective, tone, and heuristics used during review. T
 
 ### Built-in Packs
 
-| Pack | Perspective | Focus |
-|------|-------------|-------|
-| `staff-core` | Staff Engineer | Ops, ownership, long-term cost |
-| `oncall-future-you` | On-call engineer, 3am | Failure modes, pager noise, recovery |
-| `mentor-mode` | Experienced mentor | Teaching, reasoning, growth |
-| `solutions-architect` | Solutions Architect | Entity modeling, boundaries, fit-for-purpose |
-| `idp-readiness` | Platform Engineering | IDP maturity, automation vs process |
+| Pack                  | Perspective           | Focus                                        |
+| --------------------- | --------------------- | -------------------------------------------- |
+| `staff-core`          | Staff Engineer        | Ops, ownership, long-term cost               |
+| `oncall-future-you`   | On-call engineer, 3am | Failure modes, pager noise, recovery         |
+| `mentor-mode`         | Experienced mentor    | Teaching, reasoning, growth                  |
+| `solutions-architect` | Solutions Architect   | Entity modeling, boundaries, fit-for-purpose |
+| `idp-readiness`       | Platform Engineering  | IDP maturity, automation vs process          |
 
 ### Community Packs (from GitHub)
 
@@ -205,12 +243,12 @@ Any client that supports the MCP stdio transport works. Point it at `greybeard m
 
 ### Available MCP Tools
 
-| Tool | Description |
-|------|-------------|
-| `review_decision` | Staff-level review of a decision or document |
-| `self_check` | Review your own proposal before sharing |
+| Tool                  | Description                                    |
+| --------------------- | ---------------------------------------------- |
+| `review_decision`     | Staff-level review of a decision or document   |
+| `self_check`          | Review your own proposal before sharing        |
 | `coach_communication` | Get suggested language for a specific audience |
-| `list_packs` | List available content packs |
+| `list_packs`          | List available content packs                   |
 
 ---
 
@@ -231,22 +269,28 @@ All output is structured Markdown:
 
 ```markdown
 ## Summary
+
 ...
 
 ## Key Risks
+
 ...
 
 ## Tradeoffs
+
 ...
 
 ## Questions to Answer Before Proceeding
+
 ...
 
 ## Suggested Communication Language
+
 ...
 
 ---
-*Assumptions made: ...*
+
+_Assumptions made: ..._
 ```
 
 Save to a file with `--output review.md`.
@@ -270,3 +314,5 @@ Save to a file with `--output review.md`.
 Content packs are the easiest contribution. Add a `.yaml` file to `packs/`, follow the schema in an existing pack, and open a PR.
 
 If you build a public pack repo on GitHub, feel free to open an issue linking to it — we'll add it to a community registry.
+
+See the [Contributing Guide](https://greybeard.readthedocs.io/en/latest/contributing/) for detailed instructions.
