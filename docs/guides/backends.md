@@ -134,44 +134,6 @@ LM Studio accepts any model name — use `local-model` or whatever your loaded m
 
 ---
 
-## GitHub Copilot
-
-!!! warning "Currently Unavailable"
-The GitHub Copilot API does not support Personal Access Tokens. It requires OAuth authentication, which is not yet implemented in greybeard.
-
-    **Error:** `Personal Access Tokens are not supported for this endpoint`
-
-    The `github-copilot` backend is currently non-functional and will require OAuth support to work. This is a planned enhancement.
-
-**What you can use instead:**
-
-- **OpenAI** - If you have API access, use `gpt-4o` or `gpt-4o-mini`
-- **Anthropic** - If you have API access, use `claude-3-5-sonnet-20241022`
-- **Ollama** - Free local models like `llama3.2` or `qwen2.5-coder`
-- **LM Studio** - Free local models with a GUI
-
-**Why OAuth is needed:**
-
-GitHub Copilot API requires OAuth 2.0 authentication flow, which involves:
-
-1. Registering an OAuth app with GitHub
-2. Opening a browser for user authorization
-3. Handling OAuth callback and token exchange
-4. Managing token refresh
-
-This is more complex than simple API key authentication and is planned for a future release.
-
-**Tracked issue:** [Add OAuth support for GitHub Copilot backend](#) _(open an issue to track this)_
-
-!!! note
-Model availability depends on your GitHub Copilot subscription tier.
-
----
-
-## Using a different model per command
-
-Override the model for a single run with `--model`:
-
 ```bash
 git diff main | greybeard analyze --model gpt-4o-mini
 git diff main | greybeard analyze --model llama3.1:70b

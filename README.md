@@ -18,6 +18,13 @@
 >
 > The greybeard has been paged at 3am. They've watched confident decisions become production incidents. They've seen "we'll clean it up later" last five years. They're not here to block you — they're here to make sure you've thought it through.
 
+[![CI](https://github.com/btotharye/greybeard/actions/workflows/ci.yml/badge.svg)](https://github.com/btotharye/greybeard/actions/workflows/ci.yml)
+[![Documentation](https://img.shields.io/badge/docs-readthedocs-blue)](https://greybeard.readthedocs.io)
+[![PyPI](https://img.shields.io/pypi/v/greybeard?color=blue)](https://pypi.org/project/greybeard/)
+[![Python Version](https://img.shields.io/pypi/pyversions/greybeard)](https://pypi.org/project/greybeard/)
+[![License](https://img.shields.io/github/license/btotharye/greybeard)](LICENSE)
+[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+
 ---
 
 ## Philosophy
@@ -304,7 +311,7 @@ Save to a file with `--output review.md`.
 
 ## Design Decisions
 
-- **Multi-backend**: OpenAI, Anthropic, Ollama, LM Studio, GitHub Copilot. Configured via `~/.greybeard/config.yaml`. All local backends require no API key.
+- **Multi-backend**: OpenAI, Anthropic, Ollama, LM Studio. Configured via `~/.greybeard/config.yaml`. All local backends require no API key.
 - **CLI-first**: No web UI, no server. Designed to be piped into and out of.
 - **Stateless**: No conversation history by default. Add `--context` for prior context.
 - **Pack format**: YAML for human editability. Packs are loaded at runtime and validated loosely.
@@ -316,8 +323,19 @@ Save to a file with `--output review.md`.
 
 ## Contributing
 
-Content packs are the easiest contribution. Add a `.yaml` file to `packs/`, follow the schema in an existing pack, and open a PR.
+We welcome contributions! 🎉
+
+**Quick Start:**
+
+- **Content Packs**: Add a `.yaml` file to `packs/` - the easiest and highest-value contribution
+- **Bug Reports**: [Open an issue](https://github.com/btotharye/greybeard/issues/new?template=bug_report.yml)
+- **Feature Requests**: [Suggest a feature](https://github.com/btotharye/greybeard/issues/new?template=feature_request.yml)
+- **Code**: See the [Contributing Guide](CONTRIBUTING.md) for setup instructions
+
+**Community:**
+
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Security Policy](SECURITY.md)
+- [Documentation](https://greybeard.readthedocs.io/en/latest/contributing/)
 
 If you build a public pack repo on GitHub, feel free to open an issue linking to it — we'll add it to a community registry.
-
-See the [Contributing Guide](https://greybeard.readthedocs.io/en/latest/contributing/) for detailed instructions.

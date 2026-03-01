@@ -25,7 +25,7 @@ jobs:
         run: uv pip install --system build
 
       - name: Build package
-        run: python -m build
+        run: uv run --python 3.11 python -m build
 
       - name: Store the distribution packages
         uses: actions/upload-artifact@v4

@@ -5,7 +5,7 @@ Supports multiple backends via the greybeard config:
   - anthropic   (claude-3-5-sonnet)
   - ollama      (local, llama3.2 or any model)
   - lmstudio    (local OpenAI-compatible server)
-  - github-copilot (uses GITHUB_TOKEN)
+
 
 All backends except anthropic are accessed via the OpenAI-compatible API.
 Anthropic uses its own SDK.
@@ -66,7 +66,7 @@ def _run_openai_compat(
     user_message: str,
     stream: bool = True,
 ) -> str:
-    """Run via any OpenAI-compatible API (openai, ollama, lmstudio, github-copilot)."""
+    """Run via any OpenAI-compatible API (openai, ollama, lmstudio)."""
     try:
         from openai import OpenAI
     except ImportError:

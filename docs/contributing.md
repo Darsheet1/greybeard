@@ -22,7 +22,6 @@ uv pip install -e ".[dev]"
 source .venv/bin/activate      # if uv created a venv
 
 # Or use uv run for commands without activating
-uv pip install -e ".[dev]"
 uv run pytest                  # run tests
 uv run ruff check .            # run linter
 

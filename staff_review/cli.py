@@ -400,7 +400,7 @@ def config_set(key: str, value: str) -> None:
 
     \b
     Keys:
-      llm.backend      openai | anthropic | ollama | lmstudio | github-copilot
+      llm.backend      openai | anthropic | ollama | lmstudio
       llm.model        e.g. gpt-4o, claude-3-5-sonnet-20241022, llama3.2
       llm.base_url     e.g. http://localhost:11434/v1
       llm.api_key_env  e.g. OPENAI_API_KEY
@@ -464,7 +464,6 @@ def init() -> None:
         "anthropic": "Anthropic API (claude-3-5-sonnet, etc.) — needs ANTHROPIC_API_KEY",
         "ollama": "Ollama (local, free) — run `ollama serve` first",
         "lmstudio": "LM Studio (local, free) — run LM Studio server first",
-        "github-copilot": "[dim](Unavailable - requires OAuth, not yet implemented)[/dim]",
     }
     for i, (name, desc) in enumerate(backend_info.items(), 1):
         marker = "[green]●[/green]" if name == cfg.llm.backend else " "
@@ -472,7 +471,7 @@ def init() -> None:
 
     console.print()
     backend_choice = click.prompt(
-        "Choose backend (1-5)",
+        "Choose backend (1-4)",
         default=str(list(backend_info.keys()).index(cfg.llm.backend) + 1),
     )
     try:
