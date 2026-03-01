@@ -13,4 +13,4 @@ venv/
 htmlcov/
 .coverage
 coverage.xml
-site/
+site/review.md
