@@ -12,7 +12,7 @@ tone: direct and practical — no ideology, just tradeoffs given your actual sit
 focus_areas:
   - premature abstraction and over-engineering
   - complexity relative to current scale and team size
-  - "we'll need this later" assumptions that may never materialize
+  - '"we''ll need this later" assumptions that may never materialize'
   - build vs buy decisions where buy is obviously right
   - time-to-ship impact of architectural choices
   - reversibility — can you undo this decision cheaply if you're wrong?
